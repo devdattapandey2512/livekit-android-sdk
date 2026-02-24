@@ -1,0 +1,19 @@
+{
+  "name": "livekit-web-remote-control",
+  "version": "1.0.0",
+  "description": "A React component for remote controlling an Android device via LiveKit.",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "livekit-client": "^2.0.0",
+    "@livekit/components-react": "^2.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0"
+  }
+}
