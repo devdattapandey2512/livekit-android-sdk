@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 LiveKit, Inc.
+ * Copyright 2023-2026 LiveKit, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ import android.content.Intent
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
 import android.os.Parcelable
-import org.json.JSONObject
-import io.livekit.android.sample.util.RemoteControlManager
 import android.view.WindowManager
 import android.widget.EditText
 import android.widget.Toast
@@ -37,12 +35,14 @@ import io.livekit.android.sample.common.R
 import io.livekit.android.sample.databinding.CallActivityBinding
 import io.livekit.android.sample.dialog.showAudioProcessorSwitchDialog
 import io.livekit.android.sample.dialog.showDebugMenuDialog
-import io.livekit.android.sample.service.ScreenCaptureForegroundService
 import io.livekit.android.sample.dialog.showSelectAudioDeviceDialog
 import io.livekit.android.sample.model.StressTest
+import io.livekit.android.sample.service.ScreenCaptureForegroundService
+import io.livekit.android.sample.util.RemoteControlManager
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
+import org.json.JSONObject
 
 class CallActivity : AppCompatActivity() {
 
