@@ -153,6 +153,7 @@ dependencies {
     implementation libs.androidx.annotation
     implementation libs.androidx.core
     implementation libs.protobuf.javalite
+    compileOnly "com.google.protobuf:protobuf-java:${libs.versions.protobuf.get()}"
 
     implementation libs.android.jain.sip.ri
 
