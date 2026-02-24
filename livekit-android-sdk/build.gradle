@@ -62,7 +62,7 @@ android {
     }
     kotlinOptions {
         freeCompilerArgs = ["-Xinline-classes", "-opt-in=kotlin.RequiresOptIn", "-opt-in=io.livekit.android.annotations.Beta"]
-        jvmTarget = java_version
+        jvmTarget = java_version.toString()
     }
 
     publishing {
@@ -141,7 +141,7 @@ dokkaHtml {
 
 dependencies {
     //api fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation libs.coroutines.lib
     implementation libs.kotlinx.serialization.json
     api libs.webrtc

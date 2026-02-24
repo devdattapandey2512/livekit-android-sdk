@@ -79,7 +79,7 @@ subprojects {
     // JvmToolchain should not be used since it changes the actual JDK used.
     tasks.withType(KaptGenerateStubs).configureEach {
         kotlinOptions {
-            jvmTarget = java_version
+            jvmTarget = java_version.toString()
         }
     }
 
