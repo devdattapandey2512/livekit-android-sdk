@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 LiveKit, Inc.
+ * Copyright 2023-2026 LiveKit, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package io.livekit.android.sample
 
+import android.content.Intent
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
 import android.os.Parcelable
@@ -36,9 +37,12 @@ import io.livekit.android.sample.dialog.showAudioProcessorSwitchDialog
 import io.livekit.android.sample.dialog.showDebugMenuDialog
 import io.livekit.android.sample.dialog.showSelectAudioDeviceDialog
 import io.livekit.android.sample.model.StressTest
+import io.livekit.android.sample.service.ScreenCaptureForegroundService
+import io.livekit.android.sample.util.RemoteControlManager
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
+import org.json.JSONObject
 
 class CallActivity : AppCompatActivity() {
 
@@ -63,6 +67,8 @@ class CallActivity : AppCompatActivity() {
             val resultCode = result.resultCode
             val data = result.data
             if (resultCode != RESULT_OK || data == null) {
+                val intent = Intent(this, ScreenCaptureForegroundService::class.java)
+                stopService(intent)
                 return@registerForActivityResult
             }
             viewModel.startScreenCapture(data)
@@ -149,6 +155,8 @@ class CallActivity : AppCompatActivity() {
                     binding.screenShare.setOnClickListener {
                         if (enabled) {
                             viewModel.stopScreenCapture()
+                            val intent = Intent(this@CallActivity, ScreenCaptureForegroundService::class.java)
+                            stopService(intent)
                         } else {
                             requestMediaProjection()
                         }
@@ -223,6 +231,41 @@ class CallActivity : AppCompatActivity() {
 
         lifecycleScope.launchWhenResumed {
             viewModel.dataReceived.collect {
+                try {
+                    // Extract message content assuming "Identity: Message" format
+                    val splitIndex = it.indexOf(": ")
+                    if (splitIndex != -1) {
+                        val messageContent = it.substring(splitIndex + 2)
+                        val json = JSONObject(messageContent)
+                        if (json.has("action") && json.has("x") && json.has("y")) {
+                            val action = json.getString("action")
+                            val xPercent = json.getDouble("x").toFloat()
+                            val yPercent = json.getDouble("y").toFloat()
+
+                            val metrics = android.util.DisplayMetrics()
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                                val windowMetrics = windowManager.currentWindowMetrics
+                                val bounds = windowMetrics.bounds
+                                metrics.widthPixels = bounds.width()
+                                metrics.heightPixels = bounds.height()
+                            } else {
+                                @Suppress("DEPRECATION")
+                                windowManager.defaultDisplay.getRealMetrics(metrics)
+                            }
+                            val screenWidth = metrics.widthPixels
+                            val screenHeight = metrics.heightPixels
+
+                            val x = xPercent * screenWidth
+                            val y = yPercent * screenHeight
+
+                            RemoteControlManager.injectTouch(action, x, y)
+                            // Don't toast for control messages to avoid spam
+                            return@collect
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Not a JSON control message, proceed to toast
+                }
                 Toast.makeText(this@CallActivity, "Data received: $it", Toast.LENGTH_LONG).show()
             }
         }
@@ -231,6 +274,12 @@ class CallActivity : AppCompatActivity() {
     private fun requestMediaProjection() {
         val mediaProjectionManager =
             getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        val intent = Intent(this, ScreenCaptureForegroundService::class.java)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
         screenCaptureIntentLauncher.launch(mediaProjectionManager.createScreenCaptureIntent())
     }
 

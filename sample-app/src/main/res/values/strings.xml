@@ -7,4 +7,5 @@
     <string name="url">URL</string>
     <string name="save_values">Save Values</string>
     <string name="reset_values">Reset Values</string>
+    <string name="accessibility_service_description">Remote Control for LiveKit</string>
 </resources>
