@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LiveKit, Inc.
+ * Copyright 2024-2026 LiveKit, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
-import android.text.TextUtils
 import android.text.SpannableStringBuilder
+import android.text.TextUtils
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
