@@ -829,6 +829,10 @@ constructor(
             LivekitRtc.SignalResponse.MessageCase.SUBSCRIBED_AUDIO_CODEC_UPDATE -> {
                 // TODO
             }
+
+            else -> {
+                // Ignore other cases
+            }
         }
     }
 
