@@ -529,6 +529,7 @@ open class Participant(
                     LivekitModels.ParticipantInfo.Kind.EGRESS -> EGRESS
                     LivekitModels.ParticipantInfo.Kind.SIP -> SIP
                     LivekitModels.ParticipantInfo.Kind.UNRECOGNIZED -> UNKNOWN
+                    else -> UNKNOWN
                 }
             }
         }
@@ -684,6 +685,8 @@ data class ParticipantPermission(
     val canPublishSources: List<Track.Source>,
     val canUpdateMetadata: Boolean,
     val canSubscribeMetrics: Boolean,
+    val agent: Boolean = false,
+    val remoteControl: Boolean = false,
 ) {
     companion object {
         fun fromProto(proto: LivekitModels.ParticipantPermission): ParticipantPermission {
@@ -696,6 +699,7 @@ data class ParticipantPermission(
                 canPublishSources = proto.canPublishSourcesList.map { Track.Source.fromProto(it) },
                 canUpdateMetadata = proto.canUpdateMetadata,
                 canSubscribeMetrics = proto.canSubscribeMetrics,
+                agent = proto.agent,
             )
         }
     }
