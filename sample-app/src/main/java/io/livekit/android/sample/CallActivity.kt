@@ -80,6 +80,8 @@ class CallActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         binding = CallActivityBinding.inflate(layoutInflater)
 
+        checkAndPromptAccessibilityService()
+
         setContentView(binding.root)
 
         // Audience row setup
@@ -268,6 +270,27 @@ class CallActivity : AppCompatActivity() {
                 }
                 Toast.makeText(this@CallActivity, "Data received: $it", Toast.LENGTH_LONG).show()
             }
+        }
+    }
+
+    private fun checkAndPromptAccessibilityService() {
+        val am = getSystemService(android.content.Context.ACCESSIBILITY_SERVICE) as android.view.accessibility.AccessibilityManager
+        val enabledServices = android.provider.Settings.Secure.getString(
+            contentResolver,
+            android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        ) ?: ""
+
+        val isServiceEnabled = enabledServices.contains(packageName + "/" + io.livekit.android.sample.service.RemoteControlAccessibilityService::class.java.canonicalName)
+
+        if (!isServiceEnabled) {
+            AlertDialog.Builder(this)
+                .setTitle("Enable Remote Control")
+                .setMessage("To allow remote control, please enable the Accessibility Service for this app in Settings.")
+                .setPositiveButton("Settings") { _, _ ->
+                    startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
     }
 
