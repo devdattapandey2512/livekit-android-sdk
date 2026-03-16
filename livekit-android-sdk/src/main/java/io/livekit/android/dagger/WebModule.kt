@@ -32,8 +32,12 @@ import io.livekit.android.stats.AndroidNetworkInfo
 import io.livekit.android.stats.NetworkInfo
 import okhttp3.OkHttpClient
 import okhttp3.WebSocket
+import java.security.cert.X509Certificate
 import javax.inject.Named
 import javax.inject.Singleton
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 @Module
 internal object WebModule {
@@ -83,4 +87,18 @@ internal object WebModule {
 /**
  * Singleton okhttpclient to avoid recreating each time a new Room is created.
  */
-internal val globalOkHttpClient by lazy { OkHttpClient() }
+internal val globalOkHttpClient by lazy {
+    val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
+        override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+        override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+        override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+    })
+
+    val sslContext = SSLContext.getInstance("SSL")
+    sslContext.init(null, trustAllCerts, java.security.SecureRandom())
+
+    OkHttpClient.Builder()
+        .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
+        .hostnameVerifier { _, _ -> true } // This skips hostname verification
+        .build()
+}

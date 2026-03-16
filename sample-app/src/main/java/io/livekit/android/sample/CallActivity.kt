@@ -30,6 +30,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.github.ajalt.timberkt.Timber
 import com.xwray.groupie.GroupieAdapter
 import io.livekit.android.sample.common.R
 import io.livekit.android.sample.databinding.CallActivityBinding
@@ -216,11 +217,9 @@ class CallActivity : AppCompatActivity() {
         binding.debugMenu.setOnClickListener {
             showDebugMenuDialog(viewModel)
         }
-    }
 
-    override fun onResume() {
-        super.onResume()
-        lifecycleScope.launchWhenResumed {
+        // Collect error flow in background
+        lifecycleScope.launch {
             viewModel.error.collect {
                 if (it != null) {
                     Toast.makeText(this@CallActivity, "Error: $it", Toast.LENGTH_LONG).show()
@@ -229,38 +228,53 @@ class CallActivity : AppCompatActivity() {
             }
         }
 
-        lifecycleScope.launchWhenResumed {
+        // Collect dataReceived flow in background
+        lifecycleScope.launch {
             viewModel.dataReceived.collect {
+                Timber.d { "Data received: $it" }
                 try {
                     // Extract message content assuming "Identity: Message" format
                     val splitIndex = it.indexOf(": ")
                     if (splitIndex != -1) {
                         val messageContent = it.substring(splitIndex + 2)
                         val json = JSONObject(messageContent)
-                        if (json.has("action") && json.has("x") && json.has("y")) {
+                        if (json.has("action")) {
                             val action = json.getString("action")
-                            val xPercent = json.getDouble("x").toFloat()
-                            val yPercent = json.getDouble("y").toFloat()
+                            var xPercent: Float? = null
+                            var yPercent: Float? = null
 
-                            val metrics = android.util.DisplayMetrics()
-                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-                                val windowMetrics = windowManager.currentWindowMetrics
-                                val bounds = windowMetrics.bounds
-                                metrics.widthPixels = bounds.width()
-                                metrics.heightPixels = bounds.height()
-                            } else {
-                                @Suppress("DEPRECATION")
-                                windowManager.defaultDisplay.getRealMetrics(metrics)
+                            if (json.has("coordinates")) {
+                                val coordinates = json.getJSONObject("coordinates")
+                                if (coordinates.has("x") && coordinates.has("y")) {
+                                    xPercent = coordinates.getDouble("x").toFloat()
+                                    yPercent = coordinates.getDouble("y").toFloat()
+                                }
+                            } else if (json.has("x") && json.has("y")) {
+                                xPercent = json.getDouble("x").toFloat()
+                                yPercent = json.getDouble("y").toFloat()
                             }
-                            val screenWidth = metrics.widthPixels
-                            val screenHeight = metrics.heightPixels
 
-                            val x = xPercent * screenWidth
-                            val y = yPercent * screenHeight
+                            if (xPercent != null && yPercent != null) {
+                                val metrics = android.util.DisplayMetrics()
+                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                                    val windowMetrics = windowManager.currentWindowMetrics
+                                    val bounds = windowMetrics.bounds
+                                    metrics.widthPixels = bounds.width()
+                                    metrics.heightPixels = bounds.height()
+                                } else {
+                                    @Suppress("DEPRECATION")
+                                    windowManager.defaultDisplay.getRealMetrics(metrics)
+                                }
+                                val screenWidth = metrics.widthPixels
+                                val screenHeight = metrics.heightPixels
 
-                            RemoteControlManager.injectTouch(action, x, y)
-                            // Don't toast for control messages to avoid spam
-                            return@collect
+                                val x = xPercent * screenWidth
+                                val y = yPercent * screenHeight
+
+                                RemoteControlManager.injectTouch(action, x, y)
+                                // Don't toast for control messages to avoid spam
+                                return@collect
+                            }
                         }
                     }
                 } catch (e: Exception) {
@@ -269,6 +283,10 @@ class CallActivity : AppCompatActivity() {
                 Toast.makeText(this@CallActivity, "Data received: $it", Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
     }
 
     private fun requestMediaProjection() {

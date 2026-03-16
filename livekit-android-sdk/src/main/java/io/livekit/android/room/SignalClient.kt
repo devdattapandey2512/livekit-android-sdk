@@ -720,6 +720,12 @@ constructor(
                 listener?.onServerOffer(sd, offerId)
             }
 
+            LivekitRtc.SignalResponse.MessageCase.PUBLISH_DATA_TRACK_RESPONSE,
+            LivekitRtc.SignalResponse.MessageCase.UNPUBLISH_DATA_TRACK_RESPONSE,
+            LivekitRtc.SignalResponse.MessageCase.DATA_TRACK_SUBSCRIBER_HANDLES -> {
+                // TODO
+            }
+
             LivekitRtc.SignalResponse.MessageCase.TRICKLE -> {
                 val iceCandidateJson =
                     json.decodeFromString<IceCandidateJSON>(response.trickle.candidateInit)
