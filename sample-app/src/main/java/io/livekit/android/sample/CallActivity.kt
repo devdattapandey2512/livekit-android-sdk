@@ -240,6 +240,14 @@ class CallActivity : AppCompatActivity() {
                         val json = JSONObject(messageContent)
                         if (json.has("action")) {
                             val action = json.getString("action")
+
+                            // Handle KEY_EVENT actions (volume, power, etc.)
+                            if (action == "KEY_EVENT" && json.has("keyCode")) {
+                                val keyCode = json.getString("keyCode")
+                                RemoteControlManager.injectKeyEvent(keyCode)
+                                return@collect
+                            }
+
                             var xPercent: Float? = null
                             var yPercent: Float? = null
 

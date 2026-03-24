@@ -41,4 +41,13 @@ object RemoteControlManager {
             Timber.w("RemoteControlManager: Service not connected")
         }
     }
+
+    fun injectKeyEvent(keyCode: String) {
+        val service = serviceRef?.get()
+        if (service != null) {
+            service.injectKeyEvent(keyCode)
+        } else {
+            Timber.w("RemoteControlManager: Service not connected")
+        }
+    }
 }
